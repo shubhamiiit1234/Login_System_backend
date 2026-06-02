@@ -1,0 +1,21 @@
+my-app/
+├── cmd/
+│   └── api/
+│       └── main.go         # Entry point (initializes and injects dependencies)
+├── internal/
+│   ├── config/             # Environment and app configuration
+│   ├── domain/             # Business models and interface definitions
+│   │   ├── user.go
+│   │   └── product.go
+│   ├── handler/            # HTTP/API layer (handles request/response)
+│   │   ├── user_handler.go
+│   │   └── router.go
+│   ├── service/            # Business logic layer
+│   │   └── user_service.go
+│   └── repository/         # Data storage layer
+│       ├── postgres/       # SQL Database implementation
+│       │   └── user_repo.go
+│       └── redis/          # Cache implementation
+│           └── user_cache.go
+├── go.mod
+└── go.sum
