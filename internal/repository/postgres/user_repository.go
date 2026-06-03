@@ -19,11 +19,37 @@ type UserRepository interface {
 }
 
 func (r *PostgresUserRepository) CreateUser(user *model.User, hashedPassword string) (int, error) {
+	txn, err := r.db.Begin()
+	if err != nil {
+		return 0, err
+	}
+
 	query := `
 		INSERT INTO users (name, email, mobile, user_name)
 		VALUES ($1, $2, $3, $4) returning user_id;
 	`
 	var userID int
-	err := r.db.QueryRow(query, user.Name, user.Email, user.Mobile, user.UserName).Scan(&userID)
+	err = r.db.QueryRow(query, user.Name, user.Email, user.Mobile, user.UserName).Scan(&userID)
+	if err != nil {
+		txn.Rollback()
+		return 0, err
+	}
+
+	query = `
+		INSERT INTO passwords (user_id, password, user_name)
+		VALUES ($1, $2, $3);
+	`
+	_, err = r.db.Exec(query, userID, hashedPassword, user.UserName)
+
+	if err != nil {
+		txn.Rollback()
+		return 0, err
+	}
+
+	err = txn.Commit()
+	if err != nil {
+		return 0, err
+	}
+
 	return userID, err
 }
