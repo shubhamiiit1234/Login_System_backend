@@ -53,3 +53,16 @@ func (r *PostgresUserRepository) CreateUser(user *model.User, hashedPassword str
 
 	return userID, err
 }
+
+func (r *PostgresUserRepository) GetUserCredentials(userName_, password_ string) (string, string, error) {
+	var userName, password string
+	query := `
+		SELECT user_name, password FROM passwords WHERE user_name = $1;
+	`
+	err := r.db.QueryRow(query, userName_).Scan(&userName, &password)
+	if err != nil {
+		return "", "", err
+	}
+
+	return userName, password, nil
+}

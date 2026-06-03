@@ -21,6 +21,15 @@ type SignupResponse struct {
 	CreatedAt string `json:"created_at"`
 }
 
+type LoginRequest struct {
+	UserName string `json:"user_name"`
+	Password string `json:"password"`
+}
+
+type LoginResponse struct {
+	json.Token `json:"token"`
+}
+
 // Common
 type AuthHandler struct {
 	service *service.AuthService
@@ -57,6 +66,30 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	resp := SignupResponse{
 		UserID:    user_id,
 		CreatedAt: user.CreatedAt.Format("2006-01-02 15:04:05"),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	// w.Write([]byte("Login Handler!!!"))
+
+	var req LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	token, err := h.service.Login(req.UserName, req.Password)
+	if err != nil {
+		fmt.Println("Error logging in:", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	resp := LoginResponse{
+		Token: token,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
