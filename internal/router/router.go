@@ -19,7 +19,7 @@ func NewRouter(handlersContainer *app.HandlersContainer) http.Handler {
 
 	r.Post("/v1/auth/login", handlersContainer.AuthHandler.Login)
 
-	r.Post("v1/auth/forgot")
+	r.Post("/v1/auth/forgot-password", handlersContainer.AuthHandler.ForgotPassword)
 
 	return r
 }

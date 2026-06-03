@@ -27,7 +27,15 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	json.Token `json:"token"`
+	Session_id string `json:"session_id"`
+}
+
+type ForgotPasswordRequest struct {
+	Email string `json:"email"`
+}
+
+type ForgotPasswordResponse struct {
+	Message string `json:"message"`
 }
 
 // Common
@@ -81,7 +89,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.service.Login(req.UserName, req.Password)
+	session_id, err := h.service.Login(req.UserName, req.Password)
 	if err != nil {
 		fmt.Println("Error logging in:", err)
 		w.WriteHeader(http.StatusUnauthorized)
@@ -89,7 +97,31 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := LoginResponse{
-		Token: token,
+		Session_id: session_id,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+func (h *AuthHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	// w.Write([]byte("Forgot Password Handler!!!"))
+
+	var req ForgotPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	message, err := h.service.ForgotPassword(req.Email)
+	if err != nil {
+		fmt.Println("Error in forgot password:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	resp := ForgotPasswordResponse{
+		Message: message + req.Email,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

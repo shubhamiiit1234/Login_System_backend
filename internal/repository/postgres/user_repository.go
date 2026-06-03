@@ -3,15 +3,18 @@ package postgres
 import (
 	"database/sql"
 	"login/internal/model"
+
+	"github.com/go-redis/redis/v8"
 )
 
 type PostgresUserRepository struct {
-	db *sql.DB
+	db  *sql.DB
+	rdb *redis.Client
 }
 
 // Dependency injection for PostgresUserRepository
-func NewPostgresUserRepository(db *sql.DB) *PostgresUserRepository {
-	return &PostgresUserRepository{db: db}
+func NewPostgresUserRepository(db *sql.DB, rdb *redis.Client) *PostgresUserRepository {
+	return &PostgresUserRepository{db: db, rdb: rdb}
 }
 
 type UserRepository interface {

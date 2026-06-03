@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"login/internal/app"
 	"login/internal/database"
 	"login/internal/router"
 	"net/http"
 
+	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
 )
 
@@ -26,7 +29,16 @@ func main() {
 		return
 	}
 
-	handlersContainer := app.NewHandlersContainer(db)
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+	// Ping Redis to ensure connection works before building the app
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		log.Fatalf("Redis failed to connect: %v", err)
+	}
+	defer rdb.Close()
+
+	handlersContainer := app.NewHandlersContainer(db, rdb)
 
 	r := router.NewRouter(handlersContainer)
 	fmt.Println("Starting server on :8080")
