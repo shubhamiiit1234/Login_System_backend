@@ -16,9 +16,10 @@ type HandlersContainer struct {
 func NewHandlersContainer(db *sql.DB, rdb *redis.Client) *HandlersContainer {
 
 	userRepo := postgres.NewPostgresUserRepository(db, rdb)
-	authService := service.NewAuthService(userRepo, rdb)
+	sessionRepo := postgres.NewPostgresSessionRepository(db, rdb)
+	authService := service.NewAuthService(userRepo, sessionRepo, rdb)
 
 	return &HandlersContainer{
-		AuthHandler: handler.NewAuthHandler(authService),
+		AuthHandler: handler.NewAuthHandler(authService, rdb),
 	}
 }

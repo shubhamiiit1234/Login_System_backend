@@ -21,5 +21,7 @@ func NewRouter(handlersContainer *app.HandlersContainer) http.Handler {
 
 	r.Post("/v1/auth/forgot-password", handlersContainer.AuthHandler.ForgotPassword)
 
+	r.Post("/v1/auth/verify-otp", handlersContainer.AuthHandler.VerifyOtp)
+
 	return r
 }
