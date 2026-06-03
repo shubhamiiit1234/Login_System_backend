@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"login/internal/model"
 	"login/internal/repository/postgres"
 	"math/rand"
@@ -16,8 +17,10 @@ func NewAuthService(userRepo *postgres.PostgresUserRepository) *AuthService {
 	return &AuthService{userRepo: userRepo}
 }
 
-func (s *AuthService) Signup(user *model.User, password string) error {
+func (s *AuthService) Signup(user *model.User, password string) (int, error) {
+	fmt.Println("password", password)
 	hashedPassword := hashPassword(password)
+	fmt.Println("hashedPassword", hashedPassword)
 	return s.userRepo.CreateUser(user, hashedPassword)
 }
 

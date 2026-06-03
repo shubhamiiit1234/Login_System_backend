@@ -18,11 +18,12 @@ type UserRepository interface {
 	CreateUser(user *model.User, hashedPassword string) error
 }
 
-func (r *PostgresUserRepository) CreateUser(user *model.User, hashedPassword string) error {
+func (r *PostgresUserRepository) CreateUser(user *model.User, hashedPassword string) (int, error) {
 	query := `
-		INSERT INTO users (name, email, mobile, user_name, password, verified, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		INSERT INTO users (name, email, mobile, user_name)
+		VALUES ($1, $2, $3, $4) returning user_id;
 	`
-	_, err := r.db.Exec(query, user.Name, user.Email, user.Mobile, user.UserName, hashedPassword, user.Verified, user.CreatedAt, user.UpdatedAt)
-	return err
+	var userID int
+	err := r.db.QueryRow(query, user.Name, user.Email, user.Mobile, user.UserName).Scan(&userID)
+	return userID, err
 }

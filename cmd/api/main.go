@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"login/internal/app"
 	"login/internal/database"
 	"login/internal/router"
 	"net/http"
@@ -19,7 +20,15 @@ func main() {
 		return
 	}
 
-	r := router.NewRouter()
+	db, err := database.GetDBInstance()
+	if err != nil {
+		fmt.Println("error getting database instance: ", err.Error())
+		return
+	}
+
+	handlersContainer := app.NewHandlersContainer(db)
+
+	r := router.NewRouter(handlersContainer)
 	fmt.Println("Starting server on :8080")
 	err = http.ListenAndServe(":8080", r)
 	if err != nil {
