@@ -10,13 +10,20 @@ import (
 	"net/http"
 
 	_ "github.com/lib/pq"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	fmt.Println("Login System!")
 
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Note: No .env file found, using system environment variables")
+	}
+
 	connection := "host=postgres port=5432 user=postgres password=mysecretpassword dbname=Login sslmode=disable"
-	err := database.InitializeDB(connection)
+	err = database.InitializeDB(connection)
 	if err != nil {
 		fmt.Println("error initializing database: ", err.Error())
 		return

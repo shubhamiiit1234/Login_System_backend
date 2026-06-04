@@ -8,6 +8,7 @@ import (
 	"login/internal/model"
 	"login/internal/repository"
 	"math/rand"
+	"os"
 	"strconv"
 	"time"
 
@@ -176,8 +177,11 @@ func (s *AuthService) ResetPassword(userName, newPassword string) (string, error
 	return "SUCCESSFULLY RESET THE PASSWORD", nil
 }
 
-func (s *AuthService) SendOtpOnEmail(email, otp string) {
-	fromEmail := "gammaop3850@gmail.com"
+func (s *AuthService) SendOtpOnEmail(email, otp string) error {
+	fromEmail := os.Getenv("SMTP_EMAIL")
+	password := os.Getenv("SMTP_PASSWORD")
+	fmt.Println("fromEmail: ", fromEmail)
+	fmt.Println("password: ", password)
 	recipient := email
 
 	m := mail.NewMsg()
@@ -190,18 +194,19 @@ func (s *AuthService) SendOtpOnEmail(email, otp string) {
 		mail.WithPort(587),
 		mail.WithSMTPAuth(mail.SMTPAuthPlain),
 		mail.WithUsername(fromEmail),
-		mail.WithPassword("Paste 16 char app password!"),
+		mail.WithPassword(password),
 	)
 	if err != nil {
 		log.Printf("Failed to create client: %v", err)
-		return
+		return err
 	}
 
 	if err := client.DialAndSend(m); err != nil {
 		log.Printf("Failed to send: %v", err)
-		return
+		return err
 	}
 
+	return nil
 }
 
 func hashPassword(password string) string {
