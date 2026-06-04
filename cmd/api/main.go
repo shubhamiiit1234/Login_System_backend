@@ -9,14 +9,13 @@ import (
 	"login/internal/router"
 	"net/http"
 
-	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
 )
 
 func main() {
 	fmt.Println("Login System!")
 
-	connection := "host=localhost port=5432 user=postgres password=mysecretpassword dbname=Login sslmode=disable"
+	connection := "host=postgres port=5432 user=postgres password=mysecretpassword dbname=Login sslmode=disable"
 	err := database.InitializeDB(connection)
 	if err != nil {
 		fmt.Println("error initializing database: ", err.Error())
@@ -29,10 +28,8 @@ func main() {
 		return
 	}
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
-	// Ping Redis to ensure connection works before building the app
+	rdb := database.InitializeRedis("redis:6379")
+
 	if err := rdb.Ping(context.Background()).Err(); err != nil {
 		log.Fatalf("Redis failed to connect: %v", err)
 	}

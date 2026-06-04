@@ -16,11 +16,6 @@ func NewPostgresSessionRepository(db *sql.DB, rdb *redis.Client) *PostgresSessio
 	return &PostgresSessionRepository{db: db, rdb: rdb}
 }
 
-type SessionRepository interface {
-	CreateSession(sessionID string, userID int, email string) error
-	GetSession(sessionID string) (int, string, error)
-}
-
 func (r *PostgresSessionRepository) CreateSession(sessionID string, userID int, email string) error {
 	query := `
 		INSERT INTO sessions (session_id, user_id, email)

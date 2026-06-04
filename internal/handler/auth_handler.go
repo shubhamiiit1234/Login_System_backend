@@ -54,6 +54,15 @@ type VerifyOtpResponse struct {
 	Session_id string `json:"session_id,omitempty"`
 }
 
+type ResetPasswordRequest struct {
+	UserName    string `json:"user_name"`
+	NewPassword string `json:"new_password"`
+}
+
+type ResetPasswordResponse struct {
+	Message string `json:"message"`
+}
+
 // Common
 type AuthHandler struct {
 	service *service.AuthService
@@ -141,6 +150,27 @@ func (h *AuthHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 
 	resp := ForgotPasswordResponse{
 		Message: message + req.Email,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	var req ResetPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	message, err := h.service.ResetPassword(req.UserName, req.NewPassword)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	resp := ResetPasswordResponse{
+		Message: message,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

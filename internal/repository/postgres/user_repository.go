@@ -17,12 +17,6 @@ func NewPostgresUserRepository(db *sql.DB, rdb *redis.Client) *PostgresUserRepos
 	return &PostgresUserRepository{db: db, rdb: rdb}
 }
 
-type UserRepository interface {
-	CreateUser(user *model.User, hashedPassword string) error
-	GetUserDetails(userName string) (model.User, error)
-	GetUserCredentials(userName, password string) (string, string, error)
-}
-
 func (r *PostgresUserRepository) CreateUser(user *model.User, hashedPassword string) (int, error) {
 	txn, err := r.db.Begin()
 	if err != nil {
@@ -85,7 +79,7 @@ func (r *PostgresUserRepository) GetUserByEmail(email string) (model.User, error
 	return user, nil
 }
 
-func (r *PostgresUserRepository) GetUserCredentials(userName_, password_ string) (string, string, error) {
+func (r *PostgresUserRepository) GetUserCredentials(userName_ string) (string, string, error) {
 	var userName, password string
 	query := `
 		SELECT user_name, password FROM passwords WHERE user_name = $1;
@@ -96,4 +90,15 @@ func (r *PostgresUserRepository) GetUserCredentials(userName_, password_ string)
 	}
 
 	return userName, password, nil
+}
+
+func (r *PostgresUserRepository) UpdatePassword(userName_, password_ string) error {
+	query := `
+		UPDATE passwords SET password = $1 WHERE user_name = $2;
+	`
+	_, err := r.db.Exec(query, password_, userName_)
+	if err != nil {
+		return err
+	}
+	return nil
 }

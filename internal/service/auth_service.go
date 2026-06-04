@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 	"login/internal/model"
-	"login/internal/repository/postgres"
+	"login/internal/repository"
 	"math/rand"
 	"strconv"
 	"time"
@@ -27,13 +27,13 @@ var (
 )
 
 type AuthService struct {
-	userRepo    *postgres.PostgresUserRepository
-	sessionRepo *postgres.PostgresSessionRepository
+	userRepo    repository.UserRepository
+	sessionRepo repository.SessionRepository
 	rdb         *redis.Client
 }
 
 // Dependency injection for AuthService
-func NewAuthService(userRepo *postgres.PostgresUserRepository, sessionRepo *postgres.PostgresSessionRepository, rdb *redis.Client) *AuthService {
+func NewAuthService(userRepo repository.UserRepository, sessionRepo repository.SessionRepository, rdb *redis.Client) *AuthService {
 	return &AuthService{userRepo: userRepo, sessionRepo: sessionRepo, rdb: rdb}
 }
 
@@ -43,7 +43,7 @@ func (s *AuthService) Signup(user *model.User, password string) (int, error) {
 }
 
 func (s *AuthService) Login(userName_, password_ string) (string, string, error) {
-	_, password, err := s.userRepo.GetUserCredentials(userName_, password_)
+	_, password, err := s.userRepo.GetUserCredentials(userName_)
 	if err != nil {
 		return "", "", err
 	}
@@ -137,8 +137,6 @@ func (s *AuthService) VerifyOtp(purpose, email, otp string) (string, error) {
 		return "", err
 	}
 
-	// fmt.Println("redis data: ", data)
-
 	if len(data) == 0 {
 		return "", ErrOTPExpired
 	}
@@ -168,6 +166,16 @@ func (s *AuthService) VerifyOtp(purpose, email, otp string) (string, error) {
 	return OtpVerified, nil
 }
 
+func (s *AuthService) ResetPassword(userName, newPassword string) (string, error) {
+	newHashedPassword := hashPassword(newPassword)
+	err := s.userRepo.UpdatePassword(userName, newHashedPassword)
+	if err != nil {
+		return "FAILED TO RESET PASSWORD", err
+	}
+
+	return "SUCCESSFULLY RESET THE PASSWORD", nil
+}
+
 func (s *AuthService) SendOtpOnEmail(email, otp string) {
 	fromEmail := "gammaop3850@gmail.com"
 	recipient := email
@@ -182,7 +190,7 @@ func (s *AuthService) SendOtpOnEmail(email, otp string) {
 		mail.WithPort(587),
 		mail.WithSMTPAuth(mail.SMTPAuthPlain),
 		mail.WithUsername(fromEmail),
-		mail.WithPassword("Put 16 digit Gmail app code"),
+		mail.WithPassword("Paste 16 char app password!"),
 	)
 	if err != nil {
 		log.Printf("Failed to create client: %v", err)
