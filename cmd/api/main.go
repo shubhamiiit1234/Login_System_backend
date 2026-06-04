@@ -8,6 +8,7 @@ import (
 	"login/internal/database"
 	"login/internal/router"
 	"net/http"
+	"os"
 
 	_ "github.com/lib/pq"
 
@@ -22,7 +23,12 @@ func main() {
 		fmt.Println("Note: No .env file found, using system environment variables")
 	}
 
-	connection := "host=postgres port=5432 user=postgres password=mysecretpassword dbname=Login sslmode=disable"
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		dbHost = "postgres"
+	}
+
+	connection := fmt.Sprintf("host=%s port=5432 user=postgres password=mysecretpassword dbname=Login sslmode=disable", dbHost)
 	err = database.InitializeDB(connection)
 	if err != nil {
 		fmt.Println("error initializing database: ", err.Error())
@@ -35,7 +41,12 @@ func main() {
 		return
 	}
 
-	rdb := database.InitializeRedis("redis:6379")
+	redisAddr := os.Getenv("REDIS_URL")
+	if redisAddr == "" {
+		redisAddr = "redis:6379"
+	}
+
+	rdb := database.InitializeRedis(redisAddr)
 
 	if err := rdb.Ping(context.Background()).Err(); err != nil {
 		log.Fatalf("Redis failed to connect: %v", err)

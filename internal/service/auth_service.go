@@ -180,8 +180,6 @@ func (s *AuthService) ResetPassword(userName, newPassword string) (string, error
 func (s *AuthService) SendOtpOnEmail(email, otp string) error {
 	fromEmail := os.Getenv("SMTP_EMAIL")
 	password := os.Getenv("SMTP_PASSWORD")
-	fmt.Println("fromEmail: ", fromEmail)
-	fmt.Println("password: ", password)
 	recipient := email
 
 	m := mail.NewMsg()
